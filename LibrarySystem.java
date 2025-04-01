@@ -1,35 +1,34 @@
 public class LibrarySystem {
     public static void main(String[] args) {
+        // Create a Library
         Library library = new Library();
 
         // Creating books
         Book book1 = new Book("The Alchemist", "Paulo Coelho");
         Book book2 = new Book("Harry Potter", "J.K. Rowling");
 
-        // Librarian adds books
+        // Librarian adds books to the library
         Librarian librarian = new Librarian("Mr. Smith");
         librarian.addBook(library, book1);
         librarian.addBook(library, book2);
 
-        // ✅ Create a Student
+        // Create a Student
         Student student = new Student("Alice");
 
-        // ❌ Incorrect (missing student argument)
-        // library.displayBorrowedBooks(); 
+        // Student borrows books
+        library.borrowBook(student, book1);
+        library.borrowBook(student, book2);
 
-        // ✅ Correct (pass student as an argument)
+        // Display borrowed books with due dates
         library.displayBorrowedBooks(student);
 
-        // Student borrows a book
-        student.borrowBook(book1);
+        // Simulating book return
+        library.returnBook(student, book1);
 
-        // ✅ Display books borrowed by Alice
+        // Display borrowed books again
         library.displayBorrowedBooks(student);
 
-        // Student returns a book
-        student.returnBook(book1);
-
-        // ✅ Display books borrowed by Alice again
-        library.displayBorrowedBooks(student);
+        // Check overdue books
+        library.displayOverdueBooks();
     }
 }
