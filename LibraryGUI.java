@@ -1,16 +1,23 @@
+// ***** IMPORTS *****
+// Imports Swing components for GUI 
 import javax.swing.*;
+// Imports AWT components like FlowLayout
 import java.awt.*;
+// Used to handle button clicks.
 import java.awt.event.ActionEvent;
+// Allows us to listen for events
 import java.awt.event.ActionListener;
 
-public class LibraryGUI {
-    private Library library;
-    private JFrame frame;
-    private JTextField bookTitleField, studentNameField;
-    private JTextField authorField;
-    private JTextArea displayArea;
-    private JButton addBookButton, borrowBookButton, returnBookButton, checkFinesButton, payFineButton, showBooksButton, viewBorrowedBooksButton;
 
+// **** Define the LibraryGUI Class *****
+public class LibraryGUI {
+    private Library library; // Holds a reference to a Library object
+    private JFrame frame; // The main window for the GUI.
+    private JTextField bookTitleField, studentNameField, authorField; // Text fields for user input
+    private JTextArea displayArea; // Display area for text
+    private JButton addBookButton, borrowBookButton, returnBookButton, checkFinesButton, payFineButton, showBooksButton, viewBorrowedBooksButton; // Buttons
+
+    // Constructor for the GUI
     public LibraryGUI() {
         library = new Library(); // Create an instance of the Library
 
@@ -24,8 +31,6 @@ public class LibraryGUI {
         studentNameField = new JTextField(15);
         bookTitleField = new JTextField(15);
         authorField = new JTextField(15);
-        frame.add(new JLabel("Author:"));
-        frame.add(authorField);
 
         // Create display area
         displayArea = new JTextArea(15, 40);
@@ -88,6 +93,8 @@ public class LibraryGUI {
         frame.add(studentNameField);
         frame.add(new JLabel("Book Title:"));
         frame.add(bookTitleField);
+        frame.add(new JLabel("Author:"));
+        frame.add(authorField);
         frame.add(addBookButton);
         frame.add(borrowBookButton);
         frame.add(returnBookButton);
@@ -119,11 +126,18 @@ public class LibraryGUI {
     private void borrowBook() {
         String studentName = studentNameField.getText();
         String bookTitle = bookTitleField.getText();
-
+    
         if (!studentName.isEmpty() && !bookTitle.isEmpty()) {
-            Student student = new Student(studentName);
+            // Try to find the student first
+            Student student = library.findStudent(studentName);
+            
+            // If student doesn't exist, create and register them
+            if (student == null) {
+                student = new Student(studentName);
+                library.addStudent(student); // Ensure we track this student
+            }
+    
             Book book = findBook(bookTitle);
-
             if (book != null) {
                 library.borrowBook(student, book);
                 displayArea.setText(studentName + " borrowed " + bookTitle);
@@ -134,6 +148,7 @@ public class LibraryGUI {
             displayArea.setText("Enter both student name and book title.");
         }
     }
+    
 
 
     // Method to return a book
@@ -184,15 +199,29 @@ public class LibraryGUI {
     // Method to pay a fine
     private void payFine() {
         String studentName = studentNameField.getText();
+        
         if (!studentName.isEmpty()) {
-            Student student = new Student(studentName);
+            Student student = library.findStudent(studentName);
+            
+            if (student == null) {
+                displayArea.setText("Student not found.");
+                return;
+            }
+    
+            double currentFine = library.getFine(student); // Get current fine
+            
+            if (currentFine <= 0) {
+                displayArea.setText(studentName + " has no outstanding fines.");
+                return; // Stop here if there's no fine to pay
+            }
+    
             library.payFine(student, 5.0); // Assume $5 payment
             displayArea.setText(studentName + " paid $5. Remaining fine: $" + library.getFine(student));
         } else {
             displayArea.setText("Enter student name.");
         }
     }
-
+    
     // Method to display all books
     private void showBooks() {
         displayArea.setText("Library Books:\n");
@@ -217,11 +246,20 @@ public class LibraryGUI {
         String studentName = studentNameField.getText();
     
         if (!studentName.isEmpty()) {
-            Student student = library.findStudent(studentName); // Find the existing student
+            Student student = library.findStudent(studentName); // Find existing student
     
             if (student != null) {
                 String borrowedBooks = library.getBorrowedBooks(student);
-                displayArea.setText(borrowedBooks);
+    
+                // Debugging: Print to terminal
+                System.out.println("DEBUG (GUI): Displaying books -> " + borrowedBooks);
+    
+                if (borrowedBooks.isEmpty()) {
+                    displayArea.setText(studentName + " has not borrowed any books.");
+                } else {
+                    displayArea.setText("");  // Clear previous text
+                    displayArea.append(borrowedBooks); // Append instead of replacing
+                }
             } else {
                 displayArea.setText(studentName + " has not borrowed any books.");
             }
@@ -229,6 +267,7 @@ public class LibraryGUI {
             displayArea.setText("Enter a student name to view borrowed books.");
         }
     }
+     
     
 
     public static void main(String[] args) {

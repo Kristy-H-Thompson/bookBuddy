@@ -1,9 +1,7 @@
 // ArrayList allows you to have an array without having a set length
-// So that the array of books can be dynamic 
 import java.util.ArrayList;
 
 // HashMap allows you to store key-value pairs
-// This will keep track of who borrowed the book
 import java.util.HashMap;
 
 // LocalDate allows us to store time and track due dates
@@ -48,29 +46,36 @@ class Library {
         System.out.println("Added book: " + book.getTitle() + " by " + book.getAuthor());
     }
 
+
+    //  Method to store students in the borrowedBooks list when they borrow for the first time
+    public void addStudent(Student student) {
+        // Ensure they are registered
+        borrowedBooks.putIfAbsent(student, new ArrayList<>()); 
+    }
+
     // Method to borrow a book
     public void borrowBook(Student student, Book book) {
-        // Check if the book is in the library and is available
-        if (books.contains(book) && book.isAvailable()) {
-            // Call the borrowBook method from the Book class
-            book.borrowBook();
-
-            // Ensure the student has an entry in the borrowedBooks HashMap
+        if (book.isAvailable()) { 
+            // Mark book as borrowed
+            book.borrowBook(); 
+           
+            // Ensure student has a list in borrowedBooks
             borrowedBooks.putIfAbsent(student, new ArrayList<>());
-
-            // Add the book to the student's borrowed list
+    
+            // Add the new book to the borrowed Books list
             borrowedBooks.get(student).add(book);
-
-            // Set the due date for this book (e.g., 14 days from today)
-            LocalDate dueDate = LocalDate.now().plusDays(14);
-            dueDates.put(book, dueDate); 
-
-            // Print confirmation message
-            System.out.println(student.getName() + " borrowed " + book.getTitle() + " (Due on: " + dueDate + ")");
+    
+            // Store the book's due date
+            dueDates.put(book, LocalDate.now().plusDays(14));
+    
+            System.out.println(book.getTitle() + " has been borrowed.");
+            System.out.println(student.getName() + " borrowed " + book.getTitle() + " (Due on: " + dueDates.get(book) + ")");
         } else {
             System.out.println("Sorry, this book is not available.");
         }
     }
+    
+
 
     // Method to return a borrowed book and check for overdue fines
     public void returnBook(Student student, Book book) {
@@ -109,36 +114,43 @@ class Library {
     }
 
     // Method to display books a student has borrowed along with due dates
-public String getBorrowedBooks(Student student) {
-    StringBuilder result = new StringBuilder();
-    ArrayList<Book> studentBooks = borrowedBooks.getOrDefault(student, new ArrayList<>());
+    public String getBorrowedBooks(Student student) {
 
-    if (studentBooks.isEmpty()) {
-        result.append(student.getName()).append(" has not borrowed any books.");
-    } else {
-        result.append("Books borrowed by ").append(student.getName()).append(":\n");
-        for (Book book : studentBooks) {
-            LocalDate dueDate = dueDates.get(book);
-            result.append("- ").append(book.getTitle()).append(" (Due on: ").append(dueDate).append(")\n");
+        // Check if the student has any borrowed books
+        if (!borrowedBooks.containsKey(student) || borrowedBooks.get(student).isEmpty()) {
+            return student.getName() + " has not borrowed any books.";
         }
-    }
-    return result.toString();
-}
-
-public Student findStudent(String name) {
-    for (Student student : borrowedBooks.keySet()) {
-        if (student.getName().equalsIgnoreCase(name)) {
-            return student;
+    
+        // Start building out the string to display the borrowed list
+        StringBuilder borrowedList = new StringBuilder();
+        borrowedList.append(student.getName()).append(" has borrowed:\n");
+    
+        // For each borrowed book display the title, author, and due date
+        for (Book book : borrowedBooks.get(student)) {
+            LocalDate dueDate = dueDates.getOrDefault(book, LocalDate.now());
+            borrowedList.append("- ").append(book.getTitle())
+                        .append(" (Due on: ").append(dueDate).append(")\n");
         }
+    
+        return borrowedList.toString();
     }
-    return null; // Return null if student not found
-}
-
-public boolean hasBorrowedBook(Student student, Book book) {
-    Student existingStudent = findStudent(student.getName()); // Find actual student object
-    return existingStudent != null && borrowedBooks.containsKey(existingStudent) &&
-           borrowedBooks.get(existingStudent).contains(book);
-}
+    
+    
+    // Method to find a sudent
+    public Student findStudent(String name) {
+        for (Student student : borrowedBooks.keySet()) {
+            if (student.getName().equalsIgnoreCase(name)) {
+                return student;
+            }
+        }
+        return null;
+    }
+    
+    // Gets a list of borrowed books for that student
+    public boolean hasBorrowedBook(Student student, Book book) {
+        Student existingStudent = findStudent(student.getName()); 
+            return existingStudent != null && borrowedBooks.containsKey(existingStudent) && borrowedBooks.get(existingStudent).contains(book);
+    }
 
     // Method to display overdue books
     public void displayOverdueBooks() {
@@ -170,22 +182,22 @@ public boolean hasBorrowedBook(Student student, Book book) {
         return fines.getOrDefault(student, 0.0);
     }
 
-    // Method to pay a fine
+   // Method to pay a fine
     public void payFine(Student student, double amount) {
         double currentFine = fines.getOrDefault(student, 0.0);
 
-        // If the student has no fines, print a message
-        if (currentFine == 0) {
+        // Check if the student has any outstanding fines
+        if (currentFine <= 0) {
             System.out.println(student.getName() + " has no outstanding fines.");
-            return;
+            return; // Exit the method
         }
 
-        // If the amount is greater than the fine, set fine to 0
+        // ✅ If the amount is greater than or equal to the fine, clear the fine
         if (amount >= currentFine) {
             fines.put(student, 0.0);
             System.out.println(student.getName() + " has paid off all fines.");
         } else {
-            // Deduct the paid amount from the fine
+            // ✅ Deduct the paid amount from the fine
             fines.put(student, currentFine - amount);
             System.out.println(student.getName() + " paid $" + amount + ". Remaining fine: $" + fines.get(student));
         }
