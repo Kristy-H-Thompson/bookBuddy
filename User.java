@@ -20,6 +20,12 @@ class Student extends User {
     public Student(String name) {
         super(name);
     }
+
+    // Method to return a students name
+    public String getName() {
+        return name;
+    }
+
     // Calls the borrowBook method from the book class
     public void borrowBook(Book book) {
         book.borrowBook();

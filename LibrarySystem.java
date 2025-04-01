@@ -11,18 +11,25 @@ public class LibrarySystem {
         librarian.addBook(library, book1);
         librarian.addBook(library, book2);
 
-        // Display books
-        library.displayBooks();
+        // ✅ Create a Student
+        Student student = new Student("Alice");
+
+        // ❌ Incorrect (missing student argument)
+        // library.displayBorrowedBooks(); 
+
+        // ✅ Correct (pass student as an argument)
+        library.displayBorrowedBooks(student);
 
         // Student borrows a book
-        Student student = new Student("Alice");
         student.borrowBook(book1);
 
-        // Display books again
-        library.displayBooks();
+        // ✅ Display books borrowed by Alice
+        library.displayBorrowedBooks(student);
 
         // Student returns a book
         student.returnBook(book1);
-        library.displayBooks();
+
+        // ✅ Display books borrowed by Alice again
+        library.displayBorrowedBooks(student);
     }
 }
