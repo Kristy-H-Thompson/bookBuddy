@@ -21,6 +21,12 @@ class Library {
     // dueDates: Stores the due date for each borrowed book
     private HashMap<Book, LocalDate> dueDates = new HashMap<>();
 
+    // fines: Stores the amount of fines a student owes
+    private HashMap<Student, Double> fines = new HashMap<>();
+
+    // Fine rate per day (for late returns)
+    private static final double FINE_PER_DAY = 1.0; 
+
     // Method to add a book to the library
     public void addBook(Book book) {
         books.add(book);
@@ -50,10 +56,26 @@ class Library {
         }
     }
 
-    // Method to return a borrowed book
+    // Method to return a borrowed book and check for overdue fines
     public void returnBook(Student student, Book book) {
         // Check if the student has borrowed this book
         if (borrowedBooks.containsKey(student) && borrowedBooks.get(student).contains(book)) {
+            // Get today's date and the book's due date
+            LocalDate today = LocalDate.now();
+            LocalDate dueDate = dueDates.get(book);
+
+            // If the book is overdue, calculate the fine
+            if (dueDate.isBefore(today)) {
+                long daysLate = java.time.temporal.ChronoUnit.DAYS.between(dueDate, today);
+                double fineAmount = daysLate * FINE_PER_DAY;
+
+                // Add the fine to the student's account
+                fines.put(student, fines.getOrDefault(student, 0.0) + fineAmount);
+
+                // Notify the student about the fine
+                System.out.println("Late return! " + student.getName() + " owes $" + fineAmount + " for returning " + book.getTitle() + " " + daysLate + " days late.");
+            }
+
             // Call the returnBook method from the Book class
             book.returnBook();
 
@@ -89,7 +111,7 @@ class Library {
         }
     }
 
-    // Method to check and display overdue books
+    // Method to display overdue books
     public void displayOverdueBooks() {
         System.out.println("\nOverdue Books:");
 
@@ -111,6 +133,33 @@ class Library {
         // If no overdue books, print a message
         if (!hasOverdue) {
             System.out.println("No overdue books.");
+        }
+    }
+
+    // Method to check a student's fine balance
+    public void checkFines(Student student) {
+        double fineAmount = fines.getOrDefault(student, 0.0);
+        System.out.println(student.getName() + "'s total fine: $" + fineAmount);
+    }
+
+    // Method to pay a fine
+    public void payFine(Student student, double amount) {
+        double currentFine = fines.getOrDefault(student, 0.0);
+
+        // If the student has no fines, print a message
+        if (currentFine == 0) {
+            System.out.println(student.getName() + " has no outstanding fines.");
+            return;
+        }
+
+        // If the amount is greater than the fine, set fine to 0
+        if (amount >= currentFine) {
+            fines.put(student, 0.0);
+            System.out.println(student.getName() + " has paid off all fines.");
+        } else {
+            // Deduct the paid amount from the fine
+            fines.put(student, currentFine - amount);
+            System.out.println(student.getName() + " paid $" + amount + ". Remaining fine: $" + fines.get(student));
         }
     }
 }

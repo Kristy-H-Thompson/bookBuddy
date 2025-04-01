@@ -17,18 +17,20 @@ public class LibrarySystem {
 
         // Student borrows books
         library.borrowBook(student, book1);
-        library.borrowBook(student, book2);
 
-        // Display borrowed books with due dates
-        library.displayBorrowedBooks(student);
+        // Simulate overdue by setting book due date to the past
+        library.returnBook(student, book1); // This will now charge a fine
 
-        // Simulating book return
-        library.returnBook(student, book1);
+        // Display fines
+        library.checkFines(student);
 
-        // Display borrowed books again
-        library.displayBorrowedBooks(student);
+        // Student pays part of the fine
+        library.payFine(student, 2);
 
-        // Check overdue books
-        library.displayOverdueBooks();
+        // Student pays off the rest of the fine
+        library.payFine(student, 10);
+
+        // Display fines again
+        library.checkFines(student);
     }
 }
