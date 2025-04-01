@@ -7,8 +7,9 @@ public class LibraryGUI {
     private Library library;
     private JFrame frame;
     private JTextField bookTitleField, studentNameField;
+    private JTextField authorField;
     private JTextArea displayArea;
-    private JButton addBookButton, borrowBookButton, returnBookButton, checkFinesButton, payFineButton, showBooksButton;
+    private JButton addBookButton, borrowBookButton, returnBookButton, checkFinesButton, payFineButton, showBooksButton, viewBorrowedBooksButton;
 
     public LibraryGUI() {
         library = new Library(); // Create an instance of the Library
@@ -22,6 +23,9 @@ public class LibraryGUI {
         // Create input fields
         studentNameField = new JTextField(15);
         bookTitleField = new JTextField(15);
+        authorField = new JTextField(15);
+        frame.add(new JLabel("Author:"));
+        frame.add(authorField);
 
         // Create display area
         displayArea = new JTextArea(15, 40);
@@ -34,6 +38,7 @@ public class LibraryGUI {
         checkFinesButton = new JButton("Check Fines");
         payFineButton = new JButton("Pay Fine");
         showBooksButton = new JButton("Show Books");
+        viewBorrowedBooksButton = new JButton("View Borrowed Books");
 
         // Add action listeners
         addBookButton.addActionListener(new ActionListener() {
@@ -72,6 +77,12 @@ public class LibraryGUI {
             }
         });
 
+        viewBorrowedBooksButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                viewBorrowedBooks();
+            }
+        });
+
         // Add components to the frame
         frame.add(new JLabel("Student Name:"));
         frame.add(studentNameField);
@@ -83,6 +94,7 @@ public class LibraryGUI {
         frame.add(checkFinesButton);
         frame.add(payFineButton);
         frame.add(showBooksButton);
+        frame.add(viewBorrowedBooksButton);
         frame.add(new JScrollPane(displayArea));
 
         // Show the frame
@@ -92,12 +104,14 @@ public class LibraryGUI {
     // Method to add a book
     private void addBook() {
         String title = bookTitleField.getText();
-        if (!title.isEmpty()) {
-            Book book = new Book(title, "Unknown Author");
-            library.addBook(book);
-            displayArea.setText("Added book: " + title);
+        String author = authorField.getText();
+    
+        if (!title.isEmpty() && !author.isEmpty()) {
+            Book book = new Book(title, author); // Create a new book
+            library.addBook(book); // Add it to the library
+            displayArea.setText("Added book: " + title + " by " + author);
         } else {
-            displayArea.setText("Please enter a book title.");
+            displayArea.setText("Please enter both book title and author.");
         }
     }
 
@@ -125,22 +139,35 @@ public class LibraryGUI {
     private void returnBook() {
         String studentName = studentNameField.getText();
         String bookTitle = bookTitleField.getText();
-
+    
         if (!studentName.isEmpty() && !bookTitle.isEmpty()) {
-            Student student = new Student(studentName);
-            Book book = findBook(bookTitle);
-
-            if (book != null) {
-                library.returnBook(student, book);
-                displayArea.setText(studentName + " returned " + bookTitle);
-            } else {
-                displayArea.setText("Book not found.");
+            Student student = library.findStudent(studentName); // Find the existing student
+            Book book = findBook(bookTitle); // Find the book in the library
+    
+            if (student == null) {
+                displayArea.setText(studentName + " has not borrowed any books.");
+                return;
             }
+    
+            if (book == null) {
+                displayArea.setText("Book not found.");
+                return;
+            }
+    
+            // Check if the student actually borrowed the book before allowing return
+            if (!library.hasBorrowedBook(student, book)) {
+                displayArea.setText(studentName + " did not borrow " + bookTitle);
+                return;
+            }
+    
+            // Proceed with returning the book
+            library.returnBook(student, book);
+            displayArea.setText(studentName + " returned " + bookTitle);
         } else {
             displayArea.setText("Enter both student name and book title.");
         }
     }
-
+    
     // Method to check fines
     private void checkFines() {
         String studentName = studentNameField.getText();
@@ -184,6 +211,24 @@ public class LibraryGUI {
         }
         return null;
     }
+
+    private void viewBorrowedBooks() {
+        String studentName = studentNameField.getText();
+    
+        if (!studentName.isEmpty()) {
+            Student student = library.findStudent(studentName); // Find the existing student
+    
+            if (student != null) {
+                String borrowedBooks = library.getBorrowedBooks(student);
+                displayArea.setText(borrowedBooks);
+            } else {
+                displayArea.setText(studentName + " has not borrowed any books.");
+            }
+        } else {
+            displayArea.setText("Enter a student name to view borrowed books.");
+        }
+    }
+    
 
     public static void main(String[] args) {
         new LibraryGUI();
