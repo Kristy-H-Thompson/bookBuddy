@@ -49,74 +49,64 @@ class Library {
     }
 
     // Method to borrow a book
-public void borrowBook(Student student, Book book) {
-    if (books.contains(book) && book.isAvailable()) {
-        book.borrowBook();
+    public void borrowBook(Student student, Book book) {
+        // Check if the book is in the library and is available
+        if (books.contains(book) && book.isAvailable()) {
+            // Call the borrowBook method from the Book class
+            book.borrowBook();
 
-        // Find the existing student or add them if new
-        Student existingStudent = findStudent(student.getName());
-        if (existingStudent == null) {
-            existingStudent = student;
+            // Ensure the student has an entry in the borrowedBooks HashMap
+            borrowedBooks.putIfAbsent(student, new ArrayList<>());
+
+            // Add the book to the student's borrowed list
+            borrowedBooks.get(student).add(book);
+
+            // Set the due date for this book (e.g., 14 days from today)
+            LocalDate dueDate = LocalDate.now().plusDays(14);
+            dueDates.put(book, dueDate); 
+
+            // Print confirmation message
+            System.out.println(student.getName() + " borrowed " + book.getTitle() + " (Due on: " + dueDate + ")");
+        } else {
+            System.out.println("Sorry, this book is not available.");
         }
-
-        borrowedBooks.putIfAbsent(existingStudent, new ArrayList<>());
-        borrowedBooks.get(existingStudent).add(book);
-
-        LocalDate dueDate = LocalDate.now().plusDays(14);
-        dueDates.put(book, dueDate);
-
-        System.out.println(existingStudent.getName() + " borrowed " + book.getTitle() + " (Due on: " + dueDate + ")");
-    } else {
-        System.out.println("Sorry, this book is not available.");
-    }
-}
-
-// Method to return a borrowed book and check for overdue fines
-public void returnBook(Student student, Book book) {
-    // Find the actual student object in the system
-    Student existingStudent = findStudent(student.getName());
-
-    // If the student is not found or hasn't borrowed the book, show an error
-    if (existingStudent == null || !borrowedBooks.containsKey(existingStudent) || 
-        !borrowedBooks.get(existingStudent).contains(book)) {
-        System.out.println("Error: " + student.getName() + " did not borrow " + book.getTitle());
-        return;
     }
 
-    // Get today's date and the book's due date
-    LocalDate today = LocalDate.now();
-    LocalDate dueDate = dueDates.get(book);
+    // Method to return a borrowed book and check for overdue fines
+    public void returnBook(Student student, Book book) {
+        // Check if the student has borrowed this book
+        if (borrowedBooks.containsKey(student) && borrowedBooks.get(student).contains(book)) {
+            // Get today's date and the book's due date
+            LocalDate today = LocalDate.now();
+            LocalDate dueDate = dueDates.get(book);
 
-    // If the book is overdue, calculate the fine
-    if (dueDate != null && dueDate.isBefore(today)) {
-        long daysLate = java.time.temporal.ChronoUnit.DAYS.between(dueDate, today);
-        double fineAmount = daysLate * FINE_PER_DAY;
+            // If the book is overdue, calculate the fine
+            if (dueDate.isBefore(today)) {
+                long daysLate = java.time.temporal.ChronoUnit.DAYS.between(dueDate, today);
+                double fineAmount = daysLate * FINE_PER_DAY;
 
-        // Add the fine to the student's account
-        fines.put(existingStudent, fines.getOrDefault(existingStudent, 0.0) + fineAmount);
+                // Add the fine to the student's account
+                fines.put(student, fines.getOrDefault(student, 0.0) + fineAmount);
 
-        // Notify the student about the fine
-        System.out.println("Late return! " + existingStudent.getName() + " owes $" + fineAmount + 
-                           " for returning " + book.getTitle() + " " + daysLate + " days late.");
+                // Notify the student about the fine
+                System.out.println("Late return! " + student.getName() + " owes $" + fineAmount + " for returning " + book.getTitle() + " " + daysLate + " days late.");
+            }
+
+            // Call the returnBook method from the Book class
+            book.returnBook();
+
+            // Remove the book from the student's borrowed list
+            borrowedBooks.get(student).remove(book);
+
+            // Remove the due date from the system
+            dueDates.remove(book);
+
+            // Print confirmation message
+            System.out.println(student.getName() + " returned " + book.getTitle());
+        } else {
+            System.out.println("Error: This book was not borrowed by " + student.getName());
+        }
     }
-
-    // Call the returnBook method from the Book class
-    book.returnBook();
-
-    // Remove the book from the student's borrowed list
-    borrowedBooks.get(existingStudent).remove(book);
-
-    // Remove the due date from the system
-    dueDates.remove(book);
-
-    // If the student has no more borrowed books, remove them from borrowedBooks
-    if (borrowedBooks.get(existingStudent).isEmpty()) {
-        borrowedBooks.remove(existingStudent);
-    }
-
-    System.out.println(existingStudent.getName() + " returned " + book.getTitle());
-}
-
 
     // Method to display books a student has borrowed along with due dates
 public String getBorrowedBooks(Student student) {
@@ -135,21 +125,19 @@ public String getBorrowedBooks(Student student) {
     return result.toString();
 }
 
-// Helper method to check if a student has borrowed a specific book
+public Student findStudent(String name) {
+    for (Student student : borrowedBooks.keySet()) {
+        if (student.getName().equalsIgnoreCase(name)) {
+            return student;
+        }
+    }
+    return null; // Return null if student not found
+}
+
 public boolean hasBorrowedBook(Student student, Book book) {
     Student existingStudent = findStudent(student.getName()); // Find actual student object
     return existingStudent != null && borrowedBooks.containsKey(existingStudent) &&
            borrowedBooks.get(existingStudent).contains(book);
-}
-
-
-public Student findStudent(String name) {
-    for (Student s : borrowedBooks.keySet()) {
-        if (s.getName().equalsIgnoreCase(name)) {
-            return s; // Return the existing student object
-        }
-    }
-    return null; // Student not found
 }
 
     // Method to display overdue books
