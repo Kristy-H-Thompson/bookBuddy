@@ -22,7 +22,7 @@ public class LibrarySystem {
         library.returnBook(student, book1); // This will now charge a fine
 
         // Display fines
-        library.checkFines(student);
+        library.getFine(student);
 
         // Student pays part of the fine
         library.payFine(student, 2);
@@ -31,6 +31,6 @@ public class LibrarySystem {
         library.payFine(student, 10);
 
         // Display fines again
-        library.checkFines(student);
+        library.getFine(student);
     }
 }

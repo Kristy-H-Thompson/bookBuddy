@@ -38,6 +38,10 @@ class Library {
         }
     }
 
+    public ArrayList<Book> getBooks() {
+        return books;
+    }
+
     // Method to add a book to the library
     public void addBook(Book book) {
         books.add(book);
@@ -147,10 +151,9 @@ class Library {
         }
     }
 
-    // Method to check a student's fine balance
-    public void checkFines(Student student) {
-        double fineAmount = fines.getOrDefault(student, 0.0);
-        System.out.println(student.getName() + "'s total fine: $" + fineAmount);
+    // Method to get a student's fine balance (returns double)
+    public double getFine(Student student) {  // ✅ Change from void → double
+        return fines.getOrDefault(student, 0.0);
     }
 
     // Method to pay a fine
