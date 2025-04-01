@@ -6,7 +6,7 @@ class Book {
     private String author;
     private boolean isAvailable;
 
-    // Initalize a Book object 
+    // Constructor for a Book object 
     public Book(String title, String author) {
         this.title = title;
         this.author = author;
