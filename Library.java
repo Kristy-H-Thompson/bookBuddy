@@ -27,6 +27,17 @@ class Library {
     // Fine rate per day (for late returns)
     private static final double FINE_PER_DAY = 1.0; 
 
+    // Method to search for a book
+    public void searchBook(String keyword) {
+        System.out.println("\nSearch Results for: " + keyword);
+        for (Book book : books) {
+            if (book.getTitle().toLowerCase().contains(keyword.toLowerCase()) ||
+                book.getAuthor().toLowerCase().contains(keyword.toLowerCase())) {
+                book.displayBook();
+            }
+        }
+    }
+
     // Method to add a book to the library
     public void addBook(Book book) {
         books.add(book);

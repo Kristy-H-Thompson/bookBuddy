@@ -18,6 +18,10 @@ class Book {
         return title;
     }
 
+    public String getAuthor() {
+        return author;
+    }
+
     // Method to return if a Book is available or not
     public boolean isAvailable() {
         return isAvailable;
