@@ -13,9 +13,9 @@ import java.awt.event.ActionListener;
 public class LibraryGUI {
     private Library library; // Holds a reference to a Library object
     private JFrame frame; // The main window for the GUI.
-    private JTextField bookTitleField, studentNameField, authorField; // Text fields for user input
+    private JTextField bookTitleField, studentNameField, authorField, searchField; // Text fields for user input
     private JTextArea displayArea; // Display area for text
-    private JButton addBookButton, borrowBookButton, returnBookButton, checkFinesButton, payFineButton, showBooksButton, viewBorrowedBooksButton; // Buttons
+    private JButton searchButton, addBookButton, borrowBookButton, returnBookButton, checkFinesButton, payFineButton, showBooksButton, viewBorrowedBooksButton; // Buttons
 
     // Constructor for the GUI
     public LibraryGUI() {
@@ -28,6 +28,7 @@ public class LibraryGUI {
         frame.setLayout(new FlowLayout());
 
         // Create input fields
+        searchField = new JTextField(15);
         studentNameField = new JTextField(15);
         bookTitleField = new JTextField(15);
         authorField = new JTextField(15);
@@ -37,6 +38,7 @@ public class LibraryGUI {
         displayArea.setEditable(false);
 
         // Create buttons
+        searchButton = new JButton("Search");
         addBookButton = new JButton("Add Book");
         borrowBookButton = new JButton("Borrow Book");
         returnBookButton = new JButton("Return Book");
@@ -88,7 +90,16 @@ public class LibraryGUI {
             }
         });
 
+        searchButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                searchBook();
+            }
+        });
+
         // Add components to the frame
+        frame.add(new JLabel("Search:"));
+        frame.add(searchField);
+        frame.add(searchButton);
         frame.add(new JLabel("Student Name:"));
         frame.add(studentNameField);
         frame.add(new JLabel("Book Title:"));
@@ -251,10 +262,7 @@ public class LibraryGUI {
             if (student != null) {
                 String borrowedBooks = library.getBorrowedBooks(student);
     
-                // Debugging: Print to terminal
-                System.out.println("DEBUG (GUI): Displaying books -> " + borrowedBooks);
-    
-                if (borrowedBooks.isEmpty()) {
+               if (borrowedBooks.isEmpty()) {
                     displayArea.setText(studentName + " has not borrowed any books.");
                 } else {
                     displayArea.setText("");  // Clear previous text
@@ -267,6 +275,34 @@ public class LibraryGUI {
             displayArea.setText("Enter a student name to view borrowed books.");
         }
     }
+
+    // Method to search for books by title or author
+private void searchBook() {
+    String query = searchField.getText().trim().toLowerCase(); // Get user input and convert to lowercase
+
+    if (query.isEmpty()) {
+        displayArea.setText("Enter a book title or author to search.");
+        return;
+    }
+
+    StringBuilder results = new StringBuilder("Search Results:\n");
+
+    for (Book book : library.getBooks()) {
+        if (book.getTitle().toLowerCase().contains(query) || book.getAuthor().toLowerCase().contains(query)) {
+            results.append(book.getTitle()).append(" by ").append(book.getAuthor())
+                   .append(" | ").append(book.isAvailable() ? "Available" : "Not Available")
+                   .append("\n");
+        }
+    }
+
+    // Display results or show "No matches found"
+    if (results.toString().equals("Search Results:\n")) {
+        displayArea.setText("No books found matching: " + query);
+    } else {
+        displayArea.setText(results.toString());
+    }
+}
+
      
     
 

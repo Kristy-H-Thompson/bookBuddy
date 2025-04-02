@@ -202,4 +202,6 @@ class Library {
             System.out.println(student.getName() + " paid $" + amount + ". Remaining fine: $" + fines.get(student));
         }
     }
+
+    
 }
